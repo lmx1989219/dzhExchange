@@ -1,0 +1,35 @@
+package exchange
+
+import (
+	"database/sql"
+//	"fmt"
+	_ "mysql"
+)
+
+func LoadData() []string{
+	codes := make([]string,3000)
+	db, err := sql.Open("mysql", "root:601519@tcp(10.15.107.105:3306)/mobile_counter_stock?charset=utf8")
+	checkErr(err)
+	defer db.Close()
+	rows, err := db.Query("select * from T_CONCTRACTS")
+	checkErr(err)
+	i := 0
+	for rows.Next() {
+		//fields must same as db table
+		var ID int
+		var CODE string
+		var NAME string
+		var MARKET string
+		_ = rows.Scan(&ID, &CODE, &NAME, &MARKET)
+//		fmt.Println(ID,CODE,NAME,MARKET)
+		codes[i] = CODE
+		i ++
+	}
+	return codes
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

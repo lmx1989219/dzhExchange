@@ -1,0 +1,32 @@
+package exchange
+
+type SortedMap []Item
+
+type Item struct {
+	key   CommonKey
+	value CommonOrder
+}
+
+func NewSortedMap(m map[CommonKey]CommonOrder) SortedMap {
+	ms := make(SortedMap, 0, len(m))
+	for k, v := range m {
+		ms = append(ms, Item{k, v})
+	}
+	return ms
+}
+
+func (ms SortedMap) Len() int {
+	return len(ms)
+}
+
+func (ms SortedMap) Less(i, j int) bool {
+	return ms[i].key.Oid < ms[j].key.Oid
+}
+
+func (ms SortedMap) Swap(i, j int) {
+	ms[i], ms[j] = ms[j], ms[i]
+}
+
+func getFirst(){
+
+}

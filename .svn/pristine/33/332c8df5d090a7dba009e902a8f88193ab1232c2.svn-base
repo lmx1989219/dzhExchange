@@ -1,0 +1,45 @@
+package exchange
+
+import (
+	"atmmessage"
+	"code.google.com/p/goprotobuf/proto"
+	"fmt"
+	"github.com/pebbe/zmq4"
+	"time"
+	"strings"
+)
+
+//订阅行情
+//行情推送来触发撮合线程运行
+func WakeUp() {
+	ctx, _ := zmq4.NewContext()
+	socket, _ := ctx.NewSocket(zmq4.SUB)
+	defer socket.Close()
+	socket.Connect("tcp://10.15.89.122:6666")
+	socket.SetSubscribe("")
+	fmt.Println("quote sub succesd")
+	for {
+		resp, _ := socket.RecvBytes(0)
+		if len(resp) != 0 {
+			tobj := &atmmessage.Did60130{}
+			//unswap obj
+			e := proto.Unmarshal(resp, tobj)
+			if nil == e {
+//				fmt.Println("quote data is:", tobj)
+				quote := new(Quote)
+				quote.Code = tobj.GetObj()
+				quote.Name = tobj.GetName()
+				mpool := MatchPool
+				queue := mpool[quote.Code]
+				if strings.EqualFold(quote.Code, "600000"){
+					//开启一个线程去处理
+					go Ss.DealMatch(queue, quote, SignQuote)
+				}
+			} else {
+				//log.Fatalln("decode fail ", e)
+			}
+
+		}
+		time.Sleep(1 * time.Millisecond)
+	}
+}
